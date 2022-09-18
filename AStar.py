@@ -570,16 +570,17 @@ def search(rows, cols, grid, enemy_pieces, own_pieces, goals):
         curr_state = heapq.heappop(pq)
         if curr_state.is_goal():
             return curr_state.get_path(), curr_state.get_total_cost()
-        x = curr_state.piece_itself.get_x()
-        y = curr_state.piece_itself.get_y()
-
-        if not visited[y][x] or \
-                (path_cost_grid[y][x] != -1 and curr_state.get_total_cost() < path_cost_grid[y][x]):
-            path_cost_grid[y][x] = curr_state.get_total_cost()
-            transitions = curr_state.get_transitions()
-            visited[y][x] = True
-            for each in transitions:
+        transitions = curr_state.get_transitions()
+        for each in transitions:
+            x = each.piece_itself.get_x()
+            y = each.piece_itself.get_y()
+            if not visited[y][x] or \
+                (path_cost_grid[y][x] != -1 and each.get_total_cost() < path_cost_grid[y][x]):
+                visited[y][x] = True
+                path_cost_grid[y][x] = each.get_total_cost()
                 heapq.heappush(pq, each)
+
+
 
     return [], 0  # if no valid path found
 
