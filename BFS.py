@@ -435,9 +435,8 @@ class Empress(Piece):
 ######## Board
 #############################################################################
 class Board:
-    def __init__(self, grid, pieces):
+    def __init__(self, grid):
         self.grid = grid
-        self.pieces = pieces
 
     def get_num_rows(self):
         return len(self.grid)
@@ -450,20 +449,134 @@ class Board:
         y_check = (y >= 0) and (y < self.get_num_rows())
         return x_check and y_check
 
+    def get_cost(self, x, y):
+        return self.grid[y][x]
+
     def is_open_square(self, x, y):
-        return self.grid[y][x] == 1
+        return self.grid[y][x] != -1
+
+    def generate_unsafe_grid(self, enemy_pieces):
+        total_enemy_moves = [e.get_num_coord for e in enemy_pieces]
+        for enemy in enemy_pieces:
+            # (y, x)
+            enemy_moves = [e.get_num_coord() for e in enemy.get_actions()]
+            total_enemy_moves.extend(enemy_moves)
+
+        # remove duplicates
+        total_enemy_moves = list(set(total_enemy_moves))
+        new_grid = self.grid.copy()
+        for coord in total_enemy_moves:
+            # set as invalid square
+            new_grid[coord[0]][coord[1]] = -1
+        return new_grid
 
 #############################################################################
 ######## State
 #############################################################################
 class State:
-    pass
+    def __init__(self, piece_itself, board, goals, path, cost):
+        self.piece_itself = piece_itself
+        self.board = board
+        self.goals = goals
+        self.path = path
+        self.cost = cost
+
+    def get_path(self):
+        return self.path
+
+    def get_total_cost(self):
+        return self.cost
+
+    def is_goal(self):
+        for goal in self.goals:
+            if self.piece_itself.get_num_coord() == goal:
+                return True
+        return False
+
+    def get_actions(self):
+        moves = set(self.piece_itself.get_actions())
+        return list(moves).copy()
+
+    def get_transitions(self):
+        transitions = []
+        for piece in self.piece_itself.get_actions():
+            if piece.location_is_valid():
+                x = self.piece_itself.get_x()
+                y = self.piece_itself.get_y()
+                new_cost = self.cost + self.board.get_cost(x, y)
+                new_path = self.path.copy()
+                new_path.append([self.piece_itself.get_board_position, piece.get_board_position])
+                transitions.append(State(piece, self.board, self.goals, new_path, new_cost))
+        return transitions
+
+
+
+
+
 
 #############################################################################
 ######## Implement Search Algorithm
 #############################################################################
+
+
 def search(rows, cols, grid, enemy_pieces, own_pieces, goals):
-    pass
+    board = Board(grid)
+    enemy_pieces_list = []
+    for enemy in enemy_pieces:
+        x = enemy[1][1]
+        y = enemy[1][0]
+        enemy_name = enemy[0]
+        piece = "null piece"
+        if enemy_name == "King":
+            piece = King(x, y, board)
+        if enemy_name == "Rook":
+            piece = Rook(x, y, board)
+        if enemy_name == "Bishop":
+            piece = Bishop(x, y, board)
+        if enemy_name == "Queen":
+            piece = Queen(x, y, board)
+        if enemy_name == "Knight":
+            piece = Knight(x, y, board)
+        if enemy_name == "Ferz":
+            piece = Ferz(x, y, board)
+        if enemy_name == "Princess":
+            piece = Princess(x, y, board)
+        if enemy_name == "Empress":
+            piece = Empress(x, y, board)
+        enemy_pieces_list.append(piece)
+
+    safe_board = Board(board.generate_unsafe_grid(enemy_pieces_list))
+    king_piece = own_pieces[0]
+    king_x = king_piece[1][1]
+    king_y = king_piece[1][0]
+    piece_itself = King(king_x, king_y, safe_board)
+    start_path = []
+    start_cost = 0
+    start_state = State(piece_itself, safe_board, goals, start_path, start_cost)
+    visited = [[False for i in range(cols)] for j in range(rows)]
+    # path_cost_grid = [[-1 for i in range(cols)] for j in range(rows)]
+    visited[king_y][king_x] = False
+    queue = [start_state]
+
+    while queue:
+        curr_state = queue.pop(0)
+        if curr_state.is_goal():
+            return curr_state.get_path()
+        frontier = curr_state.get_transitions()
+        for each in frontier:
+            piece = each.piece_itself
+            x = piece.get_x()
+            y = piece.get_y()
+            if not visited[y][x]:
+                visited[y][x] = True
+                queue.append(each)
+
+    return [] # if no valid path found
+
+
+
+
+
 
 
 #############################################################################
@@ -531,7 +644,6 @@ def from_chess_coord( ch_coord):
 def run_BFS():    
     testcase = sys.argv[1]
     rows, cols, grid, enemy_pieces, own_pieces, goals = parse(testcase)
-    print(rows, cols, grid, enemy_pieces, own_pieces, goals)
     moves = search(rows, cols, grid, enemy_pieces, own_pieces, goals)
     return moves
 
