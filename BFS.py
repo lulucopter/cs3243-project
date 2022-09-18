@@ -20,8 +20,8 @@ class Piece:
     def get_board_position(self):
         return chr(self.get_x() + 97), self.get_y()
 
-    def get_num_coord(self):
-        return self.get_x(), self.get_y()
+    def get_num_coord(self): #y, x
+        return self.get_y(), self.get_x()
 
     def get_board(self):
         return self.board
@@ -87,7 +87,7 @@ class Rook(Piece):
 
         ## create piece for each valid square up to first obstacle encountered
         # up
-        for i in range(self.get_y() + 1, self.board.get_num_rows):
+        for i in range(self.get_y() + 1, self.board.get_num_rows()):
             x = self.get_x()
             y = i
             if not self.board.is_open_square(x, y):
@@ -105,7 +105,7 @@ class Rook(Piece):
             moves.append(piece)
 
         # right
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             x = i
             y = self.get_y()
             if not self.board.is_open_square(x, y):
@@ -134,7 +134,7 @@ class Bishop(Piece):
 
         # generate diagonals to the up right
         steps_up_right = 0
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             steps_up_right += 1
             x = i
             y = self.get_y() + steps_up_right
@@ -145,7 +145,7 @@ class Bishop(Piece):
 
         # generate diagonals to the down right
         steps_down_right = 0
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             steps_down_right += 1
             x = i
             y = self.get_y() - steps_down_right
@@ -188,7 +188,7 @@ class Queen(Piece):
 
         ## Rook's moves
         # up
-        for i in range(self.get_y() + 1, self.board.get_num_rows):
+        for i in range(self.get_y() + 1, self.board.get_num_rows()):
             x = self.get_x()
             y = i
             if not self.board.is_open_square(x, y):
@@ -206,7 +206,7 @@ class Queen(Piece):
             moves.append(piece)
 
         # right
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             x = i
             y = self.get_y()
             if not self.board.is_open_square(x, y):
@@ -227,7 +227,7 @@ class Queen(Piece):
 
         # generate diagonals to the up right
         steps_up_right = 0
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             steps_up_right += 1
             x = i
             y = self.get_y() + steps_up_right
@@ -238,7 +238,7 @@ class Queen(Piece):
 
         # generate diagonals to the down right
         steps_down_right = 0
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             steps_down_right += 1
             x = i
             y = self.get_y() - steps_down_right
@@ -319,7 +319,7 @@ class Princess(Piece):
 
         # generate diagonals to the up right
         steps_up_right = 0
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             steps_up_right += 1
             x = i
             y = self.get_y() + steps_up_right
@@ -330,7 +330,7 @@ class Princess(Piece):
 
         # generate diagonals to the down right
         steps_down_right = 0
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             steps_down_right += 1
             x = i
             y = self.get_y() - steps_down_right
@@ -389,7 +389,7 @@ class Empress(Piece):
 
         ## Rook's moves
         # up
-        for i in range(self.get_y() + 1, self.board.get_num_rows):
+        for i in range(self.get_y() + 1, self.board.get_num_rows()):
             x = self.get_x()
             y = i
             if not self.board.is_open_square(x, y):
@@ -407,7 +407,7 @@ class Empress(Piece):
             moves.append(piece)
 
         # right
-        for i in range(self.get_x() + 1, self.board.get_num_cols):
+        for i in range(self.get_x() + 1, self.board.get_num_cols()):
             x = i
             y = self.get_y()
             if not self.board.is_open_square(x, y):
@@ -415,7 +415,7 @@ class Empress(Piece):
             piece = Queen(x, y, self.get_board())
             moves.append(piece)
 
-        # right
+        # left
         for i in range(self.get_x() - 1, -1, -1):
             x = i
             y = self.get_y()
@@ -456,7 +456,7 @@ class Board:
         return self.grid[y][x] != -1
 
     def generate_unsafe_grid(self, enemy_pieces):
-        total_enemy_moves = [e.get_num_coord for e in enemy_pieces]
+        total_enemy_moves = [e.get_num_coord() for e in enemy_pieces]
         for enemy in enemy_pieces:
             # (y, x)
             enemy_moves = [e.get_num_coord() for e in enemy.get_actions()]
@@ -505,7 +505,7 @@ class State:
                 y = self.piece_itself.get_y()
                 new_cost = self.cost + self.board.get_cost(x, y)
                 new_path = self.path.copy()
-                new_path.append([self.piece_itself.get_board_position, piece.get_board_position])
+                new_path.append([self.piece_itself.get_board_position(), piece.get_board_position()])
                 transitions.append(State(piece, self.board, self.goals, new_path, new_cost))
         return transitions
 
@@ -544,7 +544,6 @@ def search(rows, cols, grid, enemy_pieces, own_pieces, goals):
         if enemy_name == "Empress":
             piece = Empress(x, y, board)
         enemy_pieces_list.append(piece)
-
     safe_board = Board(board.generate_unsafe_grid(enemy_pieces_list))
     king_piece = own_pieces[0]
     king_x = king_piece[1][1]
@@ -555,7 +554,7 @@ def search(rows, cols, grid, enemy_pieces, own_pieces, goals):
     start_state = State(piece_itself, safe_board, goals, start_path, start_cost)
     visited = [[False for i in range(cols)] for j in range(rows)]
     # path_cost_grid = [[-1 for i in range(cols)] for j in range(rows)]
-    visited[king_y][king_x] = False
+    visited[king_y][king_x] = True
     queue = [start_state]
 
     while queue:
@@ -646,5 +645,3 @@ def run_BFS():
     rows, cols, grid, enemy_pieces, own_pieces, goals = parse(testcase)
     moves = search(rows, cols, grid, enemy_pieces, own_pieces, goals)
     return moves
-
-run_BFS()
