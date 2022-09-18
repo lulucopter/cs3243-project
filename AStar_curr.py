@@ -1,10 +1,6 @@
 import sys
 import heapq
 
-def get_euclidean_distance(x_diff, y_diff):
-    x_diff = x_diff ** 2
-    y_diff = y_diff ** 2
-    return (x_diff + y_diff) ** 0.5
 
 # Helper functions to aid in your implementation. Can edit/remove
 #############################################################################
@@ -26,7 +22,7 @@ class Piece:
     def get_board_position(self):
         return chr(self.get_x() + 97), self.get_y()
 
-    def get_num_coord(self):  # y, x
+    def get_num_coord(self): #y, x
         return self.get_y(), self.get_x()
 
     def get_board(self):
@@ -49,7 +45,7 @@ class King(Piece):
         down = King(self.get_x(), self.get_y() - 1, self.get_board())
         diag_left_down = King(self.get_x() - 1, self.get_y() - 1, self.get_board())
         left = King(self.get_x() - 1, self.get_y(), self.get_board())
-        diag_left_up = King(self.get_x() - 1, self.get_y() + 1, self.get_board())
+        diag_left_up = King(self.get_x() - 1, self.get_y() + 1,self.get_board())
 
         pieces = [up, diag_right_up, right, diag_right_down, down, diag_left_down, left, diag_left_up]
         moves = pieces.copy()
@@ -277,7 +273,6 @@ class Queen(Piece):
 
         return moves
 
-
 class Ferz(Piece):
     def __init__(self, x, y, board):
         super().__init__("Ferz", x, y, board)
@@ -286,7 +281,7 @@ class Ferz(Piece):
         diag_right_up = Ferz(self.get_x() + 1, self.get_y() + 1, self.get_board())
         diag_right_down = Ferz(self.get_x() + 1, self.get_y() - 1, self.get_board())
         diag_left_down = Ferz(self.get_x() - 1, self.get_y() - 1, self.get_board())
-        diag_left_up = Ferz(self.get_x() - 1, self.get_y() + 1, self.get_board())
+        diag_left_up = Ferz(self.get_x() - 1, self.get_y() + 1,self.get_board())
 
         pieces = [diag_right_up, diag_right_down, diag_left_down, diag_left_up]
         moves = pieces.copy()
@@ -370,7 +365,6 @@ class Princess(Piece):
 
         return moves
 
-
 class Empress(Piece):
     def __init__(self, x, y, board):
         super().__init__("Empress", x, y, board)
@@ -435,6 +429,10 @@ class Empress(Piece):
         return moves
 
 
+
+
+
+
 #############################################################################
 ######## Board
 #############################################################################
@@ -473,7 +471,6 @@ class Board:
             # set as invalid square
             new_grid[coord[0]][coord[1]] = -1
         return new_grid
-
 
 #############################################################################
 ######## State
@@ -514,20 +511,32 @@ class State:
                 transitions.append(State(piece, self.board, self.goals, new_path, new_cost))
         return transitions
 
+    def get_euclidean_distance(self, x_diff, y_diff):
+        x_diff = x_diff ** 2
+        y_diff = y_diff ** 2
+        return (x_diff + y_diff) ** 0.5
+
     def heuristic_func(self):
-        x_diff = self.board.get_num_cols() - 1 - self.piece_itself.get_x()
-        y_diff = self.board.get_num_rows() - 1 - self.piece_itself.get_y()
-        dist = get_euclidean_distance(x_diff, y_diff)
+        '''
+        h = []
+        for goal in self.goals:
+            x_diff = goal[0] - self.piece_itself.get_x()
+            y_diff = goal[1] - self.piece_itself.get_y()
+            dist = self.get_euclidean_distance(x_diff, y_diff)
+            h.append(dist)
+        '''
+        goal = self.goals[0]
+        x_diff = self.goal[0] - self.piece_itself.get_x()
+        y_diff = self.goal[1] - self.piece_itself.get_y()
+        dist = self.get_euclidean_distance(x_diff, y_diff)
         return dist
 
     def __lt__(self, other):
-        return (self.cost + self.heuristic_func()) < (other.cost + other.heuristic_func())
-
+        return (self.get_total_cost() + self.heuristic_func()) < (self.get_total_cost() + other.heuristic_func())
 
 #############################################################################
 ######## Implement Search Algorithm
 #############################################################################
-
 
 def search(rows, cols, grid, enemy_pieces, own_pieces, goals):
     board = Board(grid)
@@ -572,16 +581,16 @@ def search(rows, cols, grid, enemy_pieces, own_pieces, goals):
             return curr_state.get_path(), curr_state.get_total_cost()
         x = curr_state.piece_itself.get_x()
         y = curr_state.piece_itself.get_y()
-
         if not visited[y][x] or \
                 (path_cost_grid[y][x] != -1 and curr_state.get_total_cost() < path_cost_grid[y][x]):
+            visited[y][x] = True
             path_cost_grid[y][x] = curr_state.get_total_cost()
             transitions = curr_state.get_transitions()
-            visited[y][x] = True
             for each in transitions:
                 heapq.heappush(pq, each)
 
-    return [], 0  # if no valid path found
+    return [], 0 # if no valid path found
+
 
 
 #############################################################################
@@ -593,28 +602,27 @@ def parse(testcase):
     handle = open(testcase, "r")
 
     get_par = lambda x: x.split(":")[1]
-    rows = int(get_par(handle.readline()))  # Integer
-    cols = int(get_par(handle.readline()))  # Integer
-    grid = [[1 for j in range(cols)] for i in range(rows)]  # Dictionary, label empty spaces as 1 (Default Step Cost)
-    enemy_pieces = []  # List
-    own_pieces = []  # List
-    goals = []  # List
+    rows = int(get_par(handle.readline())) # Integer
+    cols = int(get_par(handle.readline())) # Integer
+    grid = [[1 for j in range(cols)] for i in range(rows)] # Dictionary, label empty spaces as 1 (Default Step Cost)
+    enemy_pieces = [] # List
+    own_pieces = [] # List
+    goals = [] # List
 
     handle.readline()  # Ignore number of obstacles
     for ch_coord in get_par(handle.readline()).split():  # Init obstacles
         r, c = from_chess_coord(ch_coord)
-        grid[r][c] = -1  # Label Obstacle as -1
+        grid[r][c] = -1 # Label Obstacle as -1
 
     handle.readline()  # Ignore Step Cost header
     line = handle.readline()
     while line.startswith("["):
         line = line[1:-2].split(",")
         r, c = from_chess_coord(line[0])
-        grid[r][c] = int(line[1]) if grid[r][c] == 1 else grid[r][
-            c]  # Reinitialize step cost for coordinates with different costs
+        grid[r][c] = int(line[1]) if grid[r][c] == 1 else grid[r][c] #Reinitialize step cost for coordinates with different costs
         line = handle.readline()
-
-    line = handle.readline()  # Read Enemy Position
+    
+    line = handle.readline() # Read Enemy Position
     while line.startswith("["):
         line = line[1:-2]
         piece = add_piece(line)
@@ -630,20 +638,17 @@ def parse(testcase):
     for ch_coord in get_par(handle.readline()).split():
         r, c = from_chess_coord(ch_coord)
         goals.append((r, c))
-
+    
     return rows, cols, grid, enemy_pieces, own_pieces, goals
 
-
-def add_piece(comma_seperated) -> Piece:
+def add_piece( comma_seperated) -> Piece:
     piece, ch_coord = comma_seperated.split(",")
     r, c = from_chess_coord(ch_coord)
-    return [piece, (r, c)]
+    return [piece, (r,c)]
 
-
-def from_chess_coord(ch_coord):
+def from_chess_coord( ch_coord):
     return (int(ch_coord[1:]), ord(ch_coord[0]) - 97)
-
-
+    
 ### DO NOT EDIT/REMOVE THE FUNCTION HEADER BELOW###
 # To return: List of moves and nodes explored
 def run_AStar():
@@ -651,3 +656,4 @@ def run_AStar():
     rows, cols, grid, enemy_pieces, own_pieces, goals = parse(testcase)
     moves, pathcost = search(rows, cols, grid, enemy_pieces, own_pieces, goals)
     return moves, pathcost
+    

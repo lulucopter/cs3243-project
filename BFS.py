@@ -394,7 +394,7 @@ class Empress(Piece):
             y = i
             if not self.board.is_open_square(x, y):
                 break
-            piece = Queen(x, y, self.get_board())
+            piece = Empress(x, y, self.get_board())
             moves.append(piece)
 
         # down
@@ -403,7 +403,7 @@ class Empress(Piece):
             y = i
             if not self.board.is_open_square(x, y):
                 break
-            piece = Queen(x, y, self.get_board())
+            piece = Empress(x, y, self.get_board())
             moves.append(piece)
 
         # right
@@ -412,7 +412,7 @@ class Empress(Piece):
             y = self.get_y()
             if not self.board.is_open_square(x, y):
                 break
-            piece = Queen(x, y, self.get_board())
+            piece = Empress(x, y, self.get_board())
             moves.append(piece)
 
         # left
@@ -421,7 +421,7 @@ class Empress(Piece):
             y = self.get_y()
             if not self.board.is_open_square(x, y):
                 break
-            piece = Queen(x, y, self.get_board())
+            piece = Empress(x, y, self.get_board())
             moves.append(piece)
 
         return moves
